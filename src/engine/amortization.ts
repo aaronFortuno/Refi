@@ -76,28 +76,68 @@ export function simularAmortitzacioParcial(
   // Opció 1: Reduir quota, mantenir termini
   const reduirQuota = generarQuadreAmortitzacio(nouCapital, tinAnual, quotesRestants)
 
-  // Opció 2: Reduir termini, mantenir quota similar
+  // Opció 2: Reduir termini, mantenir la quota actual EXACTA (l'última quota serà el romanent)
   const quotaActual = calcularQuotaMensual(capitalActual, tinAnual, quotesRestants)
-  const novesQuotes = calcularQuotesPerQuotaObjectiu(nouCapital, tinAnual, quotaActual)
-  const reduirTermini = generarQuadreAmortitzacio(nouCapital, tinAnual, novesQuotes)
+  const reduirTermini = generarQuadreAmbQuotaFixa(nouCapital, tinAnual, quotaActual)
 
   return { reduirQuota, reduirTermini }
 }
 
 /**
- * Calcula quantes quotes calen per pagar un capital amb una quota objectiu donada.
- * n = -ln(1 - C*r/Q) / ln(1+r)
+ * Genera un quadre d'amortització amb una quota mensual fixa.
+ * Totes les mensualitats són iguals a `quotaFixa` excepte l'última,
+ * que pot ser inferior (el romanent de capital + interessos).
+ *
+ * Reflecteix el comportament real d'una hipoteca quan s'amortitza
+ * parcialment en modalitat "reduir termini": el banc manté la mateixa
+ * quota fins a la propera revisió i només escurça el termini.
  */
-function calcularQuotesPerQuotaObjectiu(
+function generarQuadreAmbQuotaFixa(
   capital: number,
   tinAnual: number,
-  quotaObjectiu: number
-): number {
-  if (tinAnual === 0) return Math.ceil(capital / quotaObjectiu)
-
+  quotaFixa: number
+): AmortizationResult {
   const r = tinAnual / 100 / 12
-  const n = -Math.log(1 - (capital * r) / quotaObjectiu) / Math.log(1 + r)
-  return Math.ceil(n)
+  const rows: AmortizationRow[] = []
+
+  let capitalPendent = capital
+  let totalInteressos = 0
+  let mes = 0
+  const maxIter = 12_000 // Salvaguarda contra bucles infinits (1000 anys)
+
+  while (capitalPendent > 0 && mes < maxIter) {
+    mes++
+    const interessos = capitalPendent * r
+    let amortitzacioCapital: number
+    let quotaMes: number
+
+    if (capitalPendent + interessos <= quotaFixa) {
+      // Última quota: romanent
+      amortitzacioCapital = capitalPendent
+      quotaMes = capitalPendent + interessos
+    } else {
+      amortitzacioCapital = quotaFixa - interessos
+      quotaMes = quotaFixa
+    }
+
+    capitalPendent = Math.max(0, capitalPendent - amortitzacioCapital)
+    totalInteressos += interessos
+
+    rows.push({
+      mes,
+      quotaMensual: round2(quotaMes),
+      interessos: round2(interessos),
+      amortitzacioCapital: round2(amortitzacioCapital),
+      capitalPendent: round2(capitalPendent),
+    })
+  }
+
+  return {
+    rows,
+    totalInteressos: round2(totalInteressos),
+    totalPagat: round2(totalInteressos + capital),
+    quotaMensual: round2(quotaFixa),
+  }
 }
 
 /**

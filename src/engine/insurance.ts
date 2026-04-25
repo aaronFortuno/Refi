@@ -50,15 +50,12 @@ export function analitzarCostVinculat(
   }
 
   // Calcular cost extra en interessos si s'elimina
-  // Amb el vincle: TIN actual
   const tinAmb = loan.tipusInteres === 'variable'
     ? (loan.indexReferencia ?? 0) + (loan.diferencial ?? 0)
     : loan.tin
 
-  // Sense el vincle: diferencial puja
-  const tinSense = loan.tipusInteres === 'variable'
-    ? (loan.indexReferencia ?? 0) + insurance.diferencialSense
-    : loan.tin + (insurance.diferencialSense - (loan.diferencial ?? 0))
+  // Sense el vincle: el TIN puja pel valor de la bonificació
+  const tinSense = tinAmb + insurance.diferencialSense
 
   const quotaAmb = calcularQuotaMensual(loan.capitalPendent, tinAmb, loan.quotesRestants)
   const quotaSense = calcularQuotaMensual(loan.capitalPendent, tinSense, loan.quotesRestants)

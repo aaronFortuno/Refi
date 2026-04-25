@@ -21,7 +21,7 @@ export interface Insurance {
   tipus: LinkedCostType
   costAnual: number // €/any (0 per a bonificacions sense cost directe)
   obligatoria: boolean
-  diferencialSense?: number // Diferencial si es cancel·la/deixa de tenir (%)
+  diferencialSense?: number // Bonificació: quant redueix el tipus d'interès (%)
 }
 
 export interface Loan {

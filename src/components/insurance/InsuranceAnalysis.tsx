@@ -60,32 +60,30 @@ export function InsuranceAnalysis() {
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-xs opacity-75">{t('analysis.annualCost')}</p>
-                <p className="font-medium">{formatCurrency(a.insurance.costAnual)}/any</p>
-              </div>
-              <div>
-                <p className="text-xs opacity-75">{t('analysis.totalCost')}</p>
-                <p className="font-medium">{formatCurrency(a.costTotalVidaPrestec)}</p>
-              </div>
-              {a.recomanacio !== 'obligatori' && a.recomanacio !== 'sense_bonificacio' && (
+            {a.recomanacio !== 'obligatori' && a.recomanacio !== 'sense_bonificacio' ? (
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-xs opacity-75">{t('analysis.totalCost')}</p>
+                  <p className="font-medium">{formatCurrency(a.costTotalVidaPrestec)}</p>
+                  <p className="text-[10px] opacity-60">{formatCurrency(a.insurance.costAnual)}/any</p>
+                </div>
                 <div>
                   <p className="text-xs opacity-75">{t('analysis.extraInterest')}</p>
                   <p className="font-medium">{formatCurrency(a.extraInteressosSense)}</p>
                 </div>
-              )}
-            </div>
-
-            {a.recomanacio === 'mantenir' && (
-              <p className="text-xs mt-2 font-medium">
-                {t('analysis.saving')}: {formatCurrency(a.estalviNet)}
-              </p>
-            )}
-            {a.recomanacio === 'eliminar' && a.costTotalVidaPrestec > 0 && (
-              <p className="text-xs mt-2 font-medium">
-                {t('analysis.saving')}: {formatCurrency(-a.estalviNet)} {t('scenario.savingInterest').toLowerCase()}
-              </p>
+                <div>
+                  <p className="text-xs opacity-75">{t('analysis.netResult')}</p>
+                  <p className="font-medium">
+                    {a.estalviNet >= 0 ? '+' : ''}{formatCurrency(a.estalviNet)}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm">
+                <p className="text-xs opacity-75">{t('analysis.totalCost')}</p>
+                <p className="font-medium">{formatCurrency(a.costTotalVidaPrestec)}</p>
+                <p className="text-[10px] opacity-60">{formatCurrency(a.insurance.costAnual)}/any</p>
+              </div>
             )}
           </div>
         ))}

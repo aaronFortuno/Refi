@@ -47,7 +47,7 @@ describe('analitzarCostVinculat', () => {
     const ins: Insurance = {
       id: 'ins-1', nom: 'Vida', tipus: 'asseguranca',
       costAnual: 100, obligatoria: false,
-      diferencialSense: 1.5, // Si l'elimines, diferencial puja de 1% a 1.5%
+      diferencialSense: 0.5, // Bonifica 0.5% sobre el diferencial
     }
     const result = analitzarCostVinculat(makeLoan(), ins)
     expect(result.recomanacio).toBe('mantenir')
@@ -59,7 +59,7 @@ describe('analitzarCostVinculat', () => {
     const ins: Insurance = {
       id: 'ins-1', nom: 'Llar', tipus: 'asseguranca',
       costAnual: 500, obligatoria: false,
-      diferencialSense: 1.02, // Només puja 0.02% sense assegurança
+      diferencialSense: 0.02, // Bonifica només 0.02%
     }
     const result = analitzarCostVinculat(makeLoan(), ins)
     expect(result.recomanacio).toBe('eliminar')
@@ -70,7 +70,7 @@ describe('analitzarCostVinculat', () => {
     const ins: Insurance = {
       id: 'ins-1', nom: 'Nòmina domiciliada', tipus: 'bonificacio',
       costAnual: 0, obligatoria: false,
-      diferencialSense: 1.3, // Sense nòmina, diferencial puja de 1% a 1.3%
+      diferencialSense: 0.3, // Bonifica 0.3% per nòmina domiciliada
     }
     const result = analitzarCostVinculat(makeLoan(), ins)
     expect(result.recomanacio).toBe('mantenir')
@@ -94,7 +94,7 @@ describe('analitzarTotsElsCostos', () => {
   it('retorna anàlisi per tots els costos de tots els préstecs', () => {
     const loan = makeLoan({
       assegurances: [
-        { id: 'a', nom: 'Vida', tipus: 'asseguranca', costAnual: 200, obligatoria: false, diferencialSense: 1.5 },
+        { id: 'a', nom: 'Vida', tipus: 'asseguranca', costAnual: 200, obligatoria: false, diferencialSense: 0.5 },
         { id: 'b', nom: 'Manteniment', tipus: 'manteniment', costAnual: 48, obligatoria: true },
       ],
     })

@@ -32,34 +32,37 @@ export function Tour({ steps, isOpen, onClose }: TourProps) {
 
   const measureAndPosition = useCallback(() => {
     if (!step) return
-    // Executar beforeShow si existeix
     step.beforeShow?.()
 
-    // Esperar que el DOM es renderitzi i estabilizi
     cancelAnimationFrame(rafRef.current)
     rafRef.current = requestAnimationFrame(() => {
-      setTimeout(() => {
-        const el = document.querySelector(step.target)
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          // Mesurar després del scroll
-          setTimeout(() => {
-            const rect = el.getBoundingClientRect()
-            setTargetRect({
-              top: rect.top,
-              left: rect.left,
-              width: rect.width,
-              height: rect.height,
-            })
-            setTransitioning(false)
-            setVisible(true)
-          }, 350)
-        } else {
-          setTargetRect(null)
-          setTransitioning(false)
-          setVisible(true)
-        }
-      }, 100)
+      const el = document.querySelector(step.target)
+      if (el) {
+        const rect = el.getBoundingClientRect()
+        setTargetRect({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        })
+        setTransitioning(false)
+        setVisible(true)
+        // Scroll i re-mesurar un cop estabilitzat
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setTimeout(() => {
+          const r = el.getBoundingClientRect()
+          setTargetRect({
+            top: r.top,
+            left: r.left,
+            width: r.width,
+            height: r.height,
+          })
+        }, 350)
+      } else {
+        setTargetRect(null)
+        setTransitioning(false)
+        setVisible(true)
+      }
     })
   }, [step])
 
@@ -99,8 +102,7 @@ export function Tour({ steps, isOpen, onClose }: TourProps) {
 
   function goTo(nextStep: number) {
     setTransitioning(true)
-    setVisible(false)
-    setTimeout(() => setCurrentStep(nextStep), 200)
+    setCurrentStep(nextStep)
   }
 
   if (!isOpen || !step) return null
@@ -115,9 +117,9 @@ export function Tour({ steps, isOpen, onClose }: TourProps) {
     ? `polygon(
         0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%,
         ${targetRect.left - pad}px ${targetRect.top - pad}px,
-        ${targetRect.left - pad}px ${targetRect.top + targetRect.height + pad}px,
-        ${targetRect.left + targetRect.width + pad}px ${targetRect.top + targetRect.height + pad}px,
         ${targetRect.left + targetRect.width + pad}px ${targetRect.top - pad}px,
+        ${targetRect.left + targetRect.width + pad}px ${targetRect.top + targetRect.height + pad}px,
+        ${targetRect.left - pad}px ${targetRect.top + targetRect.height + pad}px,
         ${targetRect.left - pad}px ${targetRect.top - pad}px
       )`
     : undefined
@@ -150,11 +152,12 @@ export function Tour({ steps, isOpen, onClose }: TourProps) {
     <>
       {/* Overlay amb forat via clip-path */}
       <div
-        className="fixed inset-0 z-[9998] transition-opacity duration-300"
+        className="fixed inset-0 z-[9998]"
         style={{
           backgroundColor: 'rgba(0,0,0,0.55)',
           clipPath,
-          opacity: visible && !transitioning ? 1 : 0,
+          opacity: visible ? 1 : 0,
+          transition: 'clip-path 0.3s ease, opacity 0.3s ease',
         }}
         onClick={onClose}
       />
@@ -168,7 +171,7 @@ export function Tour({ steps, isOpen, onClose }: TourProps) {
             left: targetRect.left - pad,
             width: targetRect.width + pad * 2,
             height: targetRect.height + pad * 2,
-            opacity: visible && !transitioning ? 1 : 0,
+            opacity: visible ? 1 : 0,
           }}
         />
       )}

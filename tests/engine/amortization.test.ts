@@ -122,7 +122,23 @@ describe('simularAmortitzacioParcial', () => {
     expect(reduirQuota.rows[reduirQuota.rows.length - 1]!.capitalPendent).toBe(0)
     expect(reduirTermini.rows[reduirTermini.rows.length - 1]!.capitalPendent).toBe(0)
   })
+
+  it('reduir termini manté la quota original exacta a totes les mensualitats menys l\'última', () => {
+    const quotaOriginal = round2(calcularQuotaMensual(100_000, 3, 240))
+    const { reduirTermini } = simularAmortitzacioParcial(100_000, 3, 240, 20_000)
+    const totes = reduirTermini.rows
+    // Totes les mensualitats menys l'última han de ser idèntiques a la quota original
+    for (let i = 0; i < totes.length - 1; i++) {
+      expect(totes[i]!.quotaMensual).toBe(quotaOriginal)
+    }
+    // L'última ha de ser <= quota original (romanent)
+    expect(totes[totes.length - 1]!.quotaMensual).toBeLessThanOrEqual(quotaOriginal)
+  })
 })
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
+}
 
 describe('generarQuadrePrestec (variable)', () => {
   function makeLoanVariable(overrides: Partial<Loan> = {}): Loan {
